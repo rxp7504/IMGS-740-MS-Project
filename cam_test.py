@@ -23,5 +23,5 @@ time.sleep(1)
 frame = picam2.capture_array("main")
 
 cv2.imwrite("test.jpg",frame)
-print("image saved")
+print("image saved!s")
 
