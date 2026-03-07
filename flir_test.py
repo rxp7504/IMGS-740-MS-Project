@@ -18,14 +18,11 @@ if not ret:
 
 print(f"Frame shape: {frame.shape}")  # let's see what we actually got
 
-# Upscale 4x
-#frame_large = cv2.resize(frame, (320, 240), interpolation=cv2.INTER_LINEAR)
-frame_large = frame
 # Save raw
-cv2.imwrite("thermal_raw.png", frame_large)
+cv2.imwrite("thermal_raw.png", frame)
 
 # Save colormap
-gray = cv2.cvtColor(frame_large, cv2.COLOR_BGR2GRAY)
+gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
 normalized = cv2.normalize(gray, None, 0, 255, cv2.NORM_MINMAX, dtype=cv2.CV_8U)
 colormap = cv2.applyColorMap(normalized, cv2.COLORMAP_INFERNO)
 cv2.imwrite("thermal_color.png", colormap)
