@@ -19,8 +19,8 @@ if not ret:
 print(f"Frame shape: {frame.shape}")  # let's see what we actually got
 
 # Upscale 4x
-frame_large = cv2.resize(frame, (320, 240), interpolation=cv2.INTER_LINEAR)
-
+#frame_large = cv2.resize(frame, (320, 240), interpolation=cv2.INTER_LINEAR)
+frame_large = frame
 # Save raw
 cv2.imwrite("thermal_raw.png", frame_large)
 

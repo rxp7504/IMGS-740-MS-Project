@@ -17,6 +17,6 @@ frame = picam2.capture_array("main") # capture an array
 print("Frame Shape (h,w,ch): ",frame.shape) # print the shape
 
 # Save the image
-cv2.imwrite("test.jpg",frame)
+cv2.imwrite("rgb_test.jpg",frame)
 print("image saved!")
 
