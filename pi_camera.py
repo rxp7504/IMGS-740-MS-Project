@@ -25,7 +25,8 @@ class RGBCamera:
 		Configure and start the camera.
 
 		Args:
-		mode: "still" for high-res captures, "preview" for fast/video captures
+		mode: "still" for high-res captures 
+			  "preview" for fast/video captures
 		"""
 		if mode == "still":
 			cfg = self.picam2.create_still_configuration(

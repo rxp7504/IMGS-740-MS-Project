@@ -21,7 +21,7 @@ with RGBCamera() as rgbCam:
 
 with ThermalCamera() as irCam:
 	# init.
-	irCam.start()
+	irCam.start("radiometry")
 	
 	# capture and save an image
 	frame = irCam.capture()
@@ -29,5 +29,16 @@ with ThermalCamera() as irCam:
 	cv2.imwrite("_imgs/thermal_img.jpg",frame)
 	print("Thermal image saved")
 	
+	# convert the raw image to temperature units
+	frame_c = irCam.convert_raw(frame) # Celsius
+	frame_f = irCam.convert_raw(frame,"f") # Fahrenheit
+	
+	# provide average scene temperature
+	avg_c = round(float(np.mean(frame_c)), 2)
+	print(f"Average scene temperature: {avg_c} °C")
+	avg_f = round(float(np.mean(frame_f)), 2)
+	print(f"Average scene temperature: {avg_f} °F")
+	
 	# Get sensor properties
 	irCam.get_properties()
+	

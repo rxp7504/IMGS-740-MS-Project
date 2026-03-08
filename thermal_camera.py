@@ -12,14 +12,31 @@ class ThermalCamera:
 		self.device_index = device_index
 		self.cap = None
 		self._started = False
+		self._mode = None
 		
-	def start(self):
-		# Open and configure the thermal camera
+	def start(self,mode="standard"):
+		""" 
+		Open and configure the thermal camera.
+		
+		Args:
+			mode: "standard" capture a UYVY for standard BGR frame
+				  "radiometry" capture Y16 raw data for real temperature values
+		"""
 		self.cap = cv2.VideoCapture(self.device_index, cv2.CAP_V4L2)
-		self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'UYVY'))
-		self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 80)
-		self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 60)
+		
+		if mode == "standard":
+			self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'UYVY'))
+		elif mode == "radiometry":
+			self.cap.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc(*'Y16 '))
+			self.cap.set(cv2.CAP_PROP_CONVERT_RGB, 0) # don't auto-convert
+		else:
+			raise RuntimeError("Invalid camera mode. Please select 'standard' or 'radiometry'")
+			
+		self.cap.set(cv2.CAP_PROP_FRAME_WIDTH, 160)
+		self.cap.set(cv2.CAP_PROP_FRAME_HEIGHT, 120)
 		self.cap.set(cv2.CAP_PROP_FPS, 9)
+		
+		self._mode = mode
 		
 		if not self.cap.isOpened():
 			raise RuntimeError(f"Could not open thermal camera at /dev/video{self.device_index}")
@@ -29,23 +46,53 @@ class ThermalCamera:
 			self.cap.grab()
 			
 		self._started = True
-		print(f"Thermal camera started on /dev/video{self.device_index}")
+		print(f"Thermal camera started on /dev/video{self.device_index} in {mode} mode")
 			
 	def capture(self):
 		"""
-		Capture a raw thermal frame in BGR format.
+		Capture a raw thermal frame.
 		
 		Returns:
-			numpy array (H, W, 3) in BGR format
+			In standard mode: numpy array (H, W, 3) in BGR format
+			In radiometry mode: numpy array (H, W) uint16 raw sensor counts
 		"""
 		if not self._started:
 			raise RuntimeError("Camera not started. Call start() first.")
 			
 		ret, frame = self.cap.read()
+		
 		if not ret:
 			raise RuntimeError("Failed to capture thermal frame")
 			
 		return frame
+		
+	def convert_raw(self,raw,unit="c"):
+		"""
+		Convert a raw Y16 capture to temperature units.
+		
+		Args:
+			raw: raw thermal capture in uint16 format
+			unit: the desired units to convert to
+				  "k" Kelvin
+				  "c" Celsius
+				  "f" Fahrenheit
+		Returns:
+			numpy array (H, W) float32 in the desired units
+		"""
+		raw = raw.astype(np.float32)
+		
+		if unit == "k":
+			frame_out = (raw / 100.0)
+		elif unit == "c":
+			frame_out = (raw / 100.0) - 273.15
+		elif unit == "f":
+			frame_out = ((raw / 100.0) - 273.15) * (9/5) + 32
+		else:
+			raise ValueError("Invalid temperature unit. Please select 'k','c',or 'f'")
+			
+		return frame_out
+		
+		
 		
 	def get_properties(self):
 		"""Query current camera properties via OpenCV."""
