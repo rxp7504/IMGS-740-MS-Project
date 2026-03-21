@@ -2,6 +2,7 @@ import cv2
 import numpy as np
 import time
 from picamera2 import Picamera2
+from libcamera import controls
 
 
 class RGBCamera:
@@ -46,6 +47,50 @@ class RGBCamera:
 		time.sleep(1)  # warm up
 		print(f"RGB camera started in '{mode}' mode")
 
+#==================== CAMERA CONFIGURATION ===================
+	def set_whitebalance(self,auto=True,mode="Auto",gains=None):
+		"""
+		Control the white balance of the camera.
+		
+		Args:
+			auto: Enable/disable auto white balance
+			mode: Sets the mode of the AWB algorithm
+				"Auto" 
+				"Tungsten" 
+				"Fluorescent"
+				"Indoor
+				"Daylight"
+				"Cloudy"
+				"Custom"
+			gains: Tuple of two floats setting channel gains (R,B)
+		"""
+		if gains is not None:
+			# Manual mode: setting ColourGains automatically disables AWB.
+			
+			# Check if gains are in range
+			if not all(0.0 <= x <= 32.0 for x in gains):
+				raise ValueError("Gains must be between 0.0 and 32.0")
+				
+			self.picam2.set_controls({"ColourGains": gains})
+			print(f"WB gains set: R={gains[0]},B={gains[1]}")
+		elif not auto:
+			# Disable AWB
+			self.picam2.set_controls({"AwbEnable": False})
+			print("AWB disabled")
+		else:
+			# Auto mode: Map the string 'mode' to Enum.
+			try:
+				awb_mode = getattr(controls.AwbModeEnum,mode)
+				self.picam2.set_controls({"AwbMode": awb_mode})
+				print(f"AWB set to: {awb_mode}")
+			except AttributeError:
+				raise ValueError(f"Invalid AWB mode: {mode}.")
+				
+				
+				
+		
+
+# ====================== CAMERA CAPTURE ======================
 	def capture(self):
 		"""
 		Capture a single frame and return it as a BGR numpy array (OpenCV format).
@@ -68,7 +113,8 @@ class RGBCamera:
 			self.picam2.stop()
 			self._started = False
 			print("RGB camera stopped")
-
+			
+# =================== CONTEXT MANAGER =======================
 	def __enter__(self):
 		return self
 
