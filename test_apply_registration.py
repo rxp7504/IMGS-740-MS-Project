@@ -53,7 +53,7 @@ if __name__ == "__main__":
         flags=cv2.INTER_LINEAR
     )
 
-    # Find innder bounding box and crop both images
+    # Find inner bounding box and crop both images
     x, y, w, h = inner_bounding_box(aligned)
     print(f"    Inner bounding box: x={x}, y={y}, w={w}, h={h}")
     
