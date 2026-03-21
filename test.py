@@ -5,33 +5,34 @@ import numpy as np
 import time
 from picamera2 import Picamera2
 
-with RGBCamera() as rgbCam:
+with RGBCamera() as cam:
 	# init.
-	rgbCam.start(mode="still")
+	cam.start(mode="still")
 	
 	# capture and save an image
-	frame = rgbCam.capture()
+	frame = cam.capture()
 	print("RGB Frame Shape: ",frame.shape)
+	#frame = cv2.cvtColor(frame,cv2.COLOR_BGR2RGB)
 	cv2.imwrite("_imgs/rgb_test.jpg",frame)
 	print("RGB image saved")
 	
 	# print the sensor properties
-	rgb_props = rgbCam.get_properties()
+	rgb_props = cam.get_properties()
 	print("RGB Sensor Model: ",rgb_props["Model"])
 
-with ThermalCamera() as irCam:
+with ThermalCamera() as flir:
 	# init.
-	irCam.start("radiometry")
+	flir.start("standard")
 	
 	# capture and save an image
-	frame = irCam.capture()
+	frame = flir.capture()
 	print("IR Frame Shape: ",frame.shape)
 	cv2.imwrite("_imgs/thermal_img.jpg",frame)
 	print("Thermal image saved")
 	
 	# convert the raw image to temperature units
-	frame_c = irCam.convert_raw(frame) # Celsius
-	frame_f = irCam.convert_raw(frame,"f") # Fahrenheit
+	frame_c = flir.convert_raw(frame) # Celsius
+	frame_f = flir.convert_raw(frame,"f") # Fahrenheit
 	
 	# provide average scene temperature
 	avg_c = round(float(np.mean(frame_c)), 2)
@@ -40,5 +41,5 @@ with ThermalCamera() as irCam:
 	print(f"Average scene temperature: {avg_f} °F")
 	
 	# Get sensor properties
-	irCam.get_properties()
+	flir.get_properties()
 	

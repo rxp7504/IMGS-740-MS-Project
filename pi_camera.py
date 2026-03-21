@@ -56,8 +56,7 @@ class RGBCamera:
 		if not self._started:
 			raise RuntimeError("Camera not started. Call start() first.")
 
-		frame = self.picam2.capture_array("main")  # RGB888
-		frame_bgr = cv2.cvtColor(frame, cv2.COLOR_RGB2BGR)
+		frame_bgr = self.picam2.capture_array("main")  # RGB888 returns a BGR image
 		return frame_bgr
 
 	def get_properties(self):
