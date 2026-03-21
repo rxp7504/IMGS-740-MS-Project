@@ -38,6 +38,35 @@ if __name__ == "__main__":
 		shape_lores=(120, 160),
 		verbose=True
 	)
+	
+	from bdsd import bdsd
+
+	result = bdsd(PS_MS_HR_p, pan, ratio=4, S=32)
+	print(f"[BDSD OUTPUT] Shape: {result.shape}")
+
+	# Split output bands
+	false_color_enhanced = (result[:, :, 0:3] * 255).astype(np.uint8)
+	thermal_enhanced     = result[:, :, 3]
+
+	# Denormalize thermal back to raw counts
+	thermal_enhanced_raw = (thermal_enhanced * (raw_max - raw_min)) + raw_min
+
+	# Convert to Celsius if using Lepton (skip for ADAS dataset)
+	# thermal_enhanced_celsius = (thermal_enhanced_raw / 100.0) - 273.15
+
+	# Display
+	fig, ax = plt.subplots(1, 3, figsize=(15, 5))
+	ax[0].imshow(cv2.cvtColor((PS_MS_HR_p[:,:,0:3] * 255).astype(np.uint8), cv2.COLOR_BGR2RGB))
+	ax[0].set_title("PS-MS-HR' (upsampled input)")
+	ax[0].axis('off')
+	ax[1].imshow(cv2.cvtColor(false_color_enhanced, cv2.COLOR_BGR2RGB))
+	ax[1].set_title("Enhanced False Color")
+	ax[1].axis('off')
+	ax[2].imshow(thermal_enhanced, cmap='inferno')
+	ax[2].set_title("Enhanced Thermal")
+	ax[2].axis('off')
+	plt.tight_layout()
+	plt.show()
 
 	print("\n")
 	print("[SUCCESS] BDSD Test Complete")
