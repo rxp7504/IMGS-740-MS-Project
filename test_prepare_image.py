@@ -121,5 +121,5 @@ if __name__ == "__main__":
 
 	
 	print("\n")
-	print("[SUCCESS] BDSD Test Complete")
+	print("[SUCCESS] Prepare Image Test Complete")
 
