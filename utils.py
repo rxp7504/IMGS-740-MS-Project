@@ -96,3 +96,9 @@ def overlay_imgs(rgb,thermal):
     plt.axis("off")
     plt.title("Overlay: RGB (green) vs Thermal (red)")
     plt.show()
+
+def contrast_enhance(img):
+    img_8bit = (img * 255).astype(np.uint8)
+    clahe = cv2.createCLAHE(clipLimit=2.0,tileGridSize=(8,8))
+    img_enhanced = clahe.apply(img_8bit).astype(np.float32) / 255.0
+    return img_enhanced
