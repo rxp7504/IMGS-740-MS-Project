@@ -2,6 +2,8 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import utils
+import tifffile
+
 
 def crop_to_size(img, shape_hires):
 	# Calculate the total pixels to remove
@@ -119,7 +121,6 @@ if __name__ == "__main__":
 	PS_MS_HR_p = cv2.resize(PS_MS_LR,shape_hires)
 	print(f"[PS-MS-HR'] Image Shape: {PS_MS_HR_p.shape}")
 
-	
 	print("\n")
 	print("[SUCCESS] Prepare Image Test Complete")
 
