@@ -45,7 +45,7 @@ if __name__ == "__main__":
     thermal = cv2.resize(thermal, (thermal.shape[1] * 4, thermal.shape[0] * 4))
     print(f"    Thermal image resized to {thermal.shape}")
     
-        # Apply to thermal
+    # Apply to thermal
     aligned = cv2.warpAffine(
         thermal,
         warp_matrix,
