@@ -13,7 +13,15 @@ CAPTURE_DIR = "static/captures"
 os.makedirs(CAPTURE_DIR,exist_ok=True)
 
 # Store the most recent capture filenames
-last_capture = {"rgb": None, "thermal", None}
+last_capture = {"rgb": None, "thermal": None}
+
+# Initialize cameras
+rgb_cam = RGBCamera()
+rgb_cam.start(mode="still")
+thermal_cam = ThermalCamera()
+thermal_cam.start()
+
+print("Cameras Initialized")
 
 @app.route("/")
 def index():
@@ -26,17 +34,13 @@ def capture():
 	timestamp = time.strftime("%Y%m%d_%H%M%S")
 	
 	# --- RGB Camera ---
-	with RGBCamera() as rgb_cam:
-		rgb_cam.start(mode="still")
-		rgb_frame = rgb_cam.capture()
-		
+	rgb_frame = rgb_cam.capture()	
 	rgb_filename = f"rgb_{timestamp}.jpg"
 	cv2.imwrite(os.path.join(CAPTURE_DIR,rgb_filename),rgb_frame)
 	
 	# --- Thermal Camera ---
-	with ThermalCamera() as thermal_cam:
-		thermal_cam.start()
-		thermal_frame = thermal_cam.capture()
+	thermal_frame = thermal_cam.capture()
+	thermal_frame = cv2.rotate(thermal_frame,cv2.ROTATE_180)
 		
 	thermal_filename = f"thermal_{timestamp}.jpg"
 	cv2.imwrite(os.path.join(CAPTURE_DIR,thermal_filename),thermal_frame)
@@ -52,6 +56,9 @@ def capture():
 	
 	
 if __name__ == "__main__":
-	app.run(host="0.0.0.0",port=500,debug=True)
-	
+	try:
+		app.run(host="0.0.0.0",port=5000,debug=False)
+	finally:
+		rgb_cam.stop()
+		thermal_cam.stop()
 	

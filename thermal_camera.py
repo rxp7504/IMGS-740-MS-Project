@@ -58,7 +58,11 @@ class ThermalCamera:
 		"""
 		if not self._started:
 			raise RuntimeError("Camera not started. Call start() first.")
-			
+		
+		# Flush stale buffered frames before capturing
+		for _ in range(5):
+			self.cap.grab()	
+		
 		ret, frame = self.cap.read()
 		
 		if not ret:
