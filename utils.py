@@ -204,3 +204,18 @@ def prepare_pansharp(thermal_raw, rgb, warp_matrix_path,
         print(f"    PAN:               {pan.shape}")
 
     return PS_MS_HR_p, pan, raw_min, raw_max
+
+def center_crop_to_aspect(img, target_aspect):
+    h, w = img.shape[:2]
+    current_aspect = w / h
+
+    if current_aspect > target_aspect:
+        # too wide → crop width
+        new_w = int(h * target_aspect)
+        start_x = (w - new_w) // 2
+        return img[:, start_x:start_x + new_w]
+    else:
+        # too tall → crop height
+        new_h = int(w / target_aspect)
+        start_y = (h - new_h) // 2
+        return img[start_y:start_y + new_h, :]

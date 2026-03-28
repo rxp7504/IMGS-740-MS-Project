@@ -58,7 +58,7 @@ class RGBCamera:
 				"Auto" 
 				"Tungsten" 
 				"Fluorescent"
-				"Indoor
+				"Indoor"
 				"Daylight"
 				"Cloudy"
 				"Custom"
@@ -81,7 +81,7 @@ class RGBCamera:
 			# Auto mode: Map the string 'mode' to Enum.
 			try:
 				awb_mode = getattr(controls.AwbModeEnum,mode)
-				self.picam2.set_controls({"AwbMode": awb_mode})
+				self.picam2.set_controls({"AwbEnable": True, "AwbMode": awb_mode})
 				print(f"AWB set to: {awb_mode}")
 			except AttributeError:
 				raise ValueError(f"Invalid AWB mode: {mode}.")
