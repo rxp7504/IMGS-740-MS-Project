@@ -34,6 +34,11 @@ if __name__ == "__main__":
 	# False color overlay: RGB in green channel, thermal in red channel
 	pan_rgb = np.stack([pan]*3,axis=-1)
 	utils.overlay_imgs(pan_rgb,PS_MS_HR_p[:,:,0:3])
+	
+	# Save the images 
+	cv2.imwrite("_imgs/pan.tiff",pan)
+	cv2.imwrite("_imgs/PS_MS_HR_p.tiff",PS_MS_HR_p)
+	print("\n Images saved")
 
 	print("\n")
 	print("="*70)

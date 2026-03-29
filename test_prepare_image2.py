@@ -74,7 +74,7 @@ if __name__ == "__main__":
 	PS_MS_HR_p = cv2.resize(PS_MS_LR,target_size)
 	print(f"[PS-MS-HR'] Image Shape: {PS_MS_HR_p.shape}")
 	
-	#warp_matrix = utils.create_registration_matrix(PS_MS_HR_p[:,:,0:3], rgb, "_resources/warp_matrix.npy")
+	warp_matrix = utils.create_registration_matrix(PS_MS_HR_p[:,:,0:3], rgb, "_resources/warp_matrix.npy")
 	# Apply registration matrix to rgb
 	rgb_aligned = cv2.warpAffine(
 		rgb,
