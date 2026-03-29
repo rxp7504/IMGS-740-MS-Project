@@ -28,6 +28,7 @@ if __name__ == "__main__":
 	warp_matrix = np.load("_resources/warp_matrix.npy")
 	ratio = 4 # how many times to boost the thermal resolution
 	
+	
 	print("[ORIGINAL RGB IMAGE]")     
 	print(f"    Image shape: {rgb.shape}")
 	print(f"    Image dtype: {rgb.dtype}")
