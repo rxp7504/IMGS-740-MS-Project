@@ -35,7 +35,7 @@ with RGBCamera() as cam:
 	frame = cam.capture()
 	print("		RGB image captured")
 	print("		RGB Frame Shape: ",frame.shape)
-	rgb_out = "_imgs/rgb.jpg"
+	rgb_out = "_imgs/rgb_cal_3.jpg"
 	cv2.imwrite(rgb_out,frame)
 	print(f"		RGB image saved: {rgb_out}")
 	
@@ -70,7 +70,7 @@ with ThermalCamera() as flir:
 	frame = flir.capture()
 	print("		IR image captured")
 	print("		IR Frame Shape: ",frame.shape)
-	ir_out = "_imgs/thermal.tiff"
+	ir_out = "_imgs/thermal_cal_3.tiff"
 	cv2.imwrite(ir_out,frame)
 	print(f"		IR image saved: {ir_out}")
 	

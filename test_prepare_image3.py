@@ -28,6 +28,12 @@ if __name__ == "__main__":
 	warp_matrix = np.load("_resources/warp_matrix.npy")
 	ratio = 4 # how many times to boost the thermal resolution
 	
+	# Reduce the thermal size by 4 for comparing algorithm performance
+	cv2.imwrite("_imgs/thermal_truth.tiff",thermal)
+	#thermal_h, thermal_w = thermal.shape[:2]
+	#target_size = (thermal_w / ratio, thermal_h / ratio)  # (width, height)
+	#thermal = cv2.resize(thermal,[30,40])
+	
 	# Convert the images
 	PS_MS_HR_p, pan = utils.prepare_pansharp(rgb,thermal,warp_matrix,ratio,verbose=True)
 
