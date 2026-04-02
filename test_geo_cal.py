@@ -80,7 +80,63 @@ if __name__ == "__main__":
 		
 	plt.imshow(display)
 	plt.show()
+	
+	img_points = np.array(centroids, dtype=np.float32).reshape(-1, 1, 2)
+	obj_points = objp.reshape(-1, 1, 3)
 
+	#ret, K, dist, rvecs, tvecs = cv2.calibrateCamera(
+	#	[obj_points], [img_points],
+	#	(160, 120),  # thermal image size
+	#	None, None
+	#)
+	
+	# Lepton 3.5 known FOV
+	fov_h = 57.0  # degrees
+	fov_v = 44.0  # degrees
+	w, h = 160, 120
+
+	fx = (w / 2) / np.tan(np.radians(fov_h / 2))
+	fy = (h / 2) / np.tan(np.radians(fov_v / 2))
+	cx, cy = w / 2.0, h / 2.0
+
+	K = np.array([
+		[fx,  0,  cx],
+		[0,  fy,  cy],
+		[0,   0,   1]
+	], dtype=np.float32)
+
+	print(f"Calculated focal lengths: fx={fx:.2f}, fy={fy:.2f}")
+
+	# Fix focal length and principal point, only solve for distortion
+	flags = (cv2.CALIB_USE_INTRINSIC_GUESS + 
+			 cv2.CALIB_FIX_FOCAL_LENGTH + 
+			 cv2.CALIB_FIX_PRINCIPAL_POINT)
+
+	ret, K, dist, rvecs, tvecs = cv2.calibrateCamera(
+		[obj_points], [img_points],
+		(w, h), K, None,
+		flags=flags
+	)
+
+	print(f"RMS reprojection error: {ret:.4f}")
+	print(f"Camera matrix K:\n{K}")
+	print(f"Distortion coefficients: {dist}")
+
+	#print(f"RMS reprojection error: {ret:.4f}")  # should be < 1.0
+	#print(f"Camera matrix K:\n{K}")
+	#print(f"Distortion coefficients: {dist}")
+
+	# Save calibration
+	np.save("_resources/thermal_K.npy", K)
+	np.save("_resources/thermal_dist.npy", dist)
+	
+	thermal_undistorted = cv2.undistort(thermal_8bit, K, dist)
+	#cv2.imwrite("_imgs/thermal_undistorted.png", thermal_undistorted)
+	plt.imshow(thermal_undistorted)
+	plt.show()
+	
+
+	print("\n")
 	print("="*70)
 	print("[SUCCESS] GEOMETRIC CALIBRATION COMPLETE")
 	print("="*70)
