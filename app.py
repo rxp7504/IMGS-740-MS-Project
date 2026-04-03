@@ -19,7 +19,7 @@ last_capture = {"rgb": None, "thermal": None}
 rgb_cam = RGBCamera()
 rgb_cam.start(mode="still")
 thermal_cam = ThermalCamera()
-thermal_cam.start()
+thermal_cam.start(mode="radiometry")
 
 print("Cameras Initialized")
 
@@ -41,15 +41,20 @@ def capture():
 	# --- Thermal Camera ---
 	thermal_frame = thermal_cam.capture()
 	thermal_frame = cv2.rotate(thermal_frame,cv2.ROTATE_180)
-		
-	thermal_filename = f"thermal_{timestamp}.jpg"
-	cv2.imwrite(os.path.join(CAPTURE_DIR,thermal_filename),thermal_frame)
+	temp = (cv2.normalize(thermal_frame.astype(np.float32), None, 0.0, 1.0, cv2.NORM_MINMAX) * 255).astype(np.uint8)
+	thermal_8bit = cv2.applyColorMap(temp,cv2.COLORMAP_INFERNO)
+
 	
+	thermal_filename = f"thermal_{timestamp}.tiff"
+	thermal_filename_8bit = f"thermal_{timestamp}_8bit.jpg"
+	cv2.imwrite(os.path.join(CAPTURE_DIR,thermal_filename),thermal_frame)
+	cv2.imwrite(os.path.join(CAPTURE_DIR,thermal_filename_8bit),thermal_8bit)
+
 	print(f"Saved: {rgb_filename}, {thermal_filename}")
 	
 	# Update last capture
 	last_capture["rgb"] = rgb_filename
-	last_capture["thermal"] = thermal_filename
+	last_capture["thermal"] = thermal_filename_8bit
 	
 	# Redirect back to main page to show images
 	return redirect(url_for("index"))
