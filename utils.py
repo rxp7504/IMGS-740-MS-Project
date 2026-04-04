@@ -78,10 +78,13 @@ def create_registration_matrix(img_fixed, img_moving, filename):
     n_inliers = int(inliers.sum()) if inliers is not None else len(pts_fixed)
     print(f"    Transform found! Inliers: {n_inliers}/{len(pts_fixed)}")
 
+    # Try a homography transform
+    H, inliers = cv2.findHomography(pts_moving,pts_fixed,method=cv2.RANSAC)
+    
     # Save and return
     np.save(filename, warp_matrix)
     print(f"    Warp matrix saved to {filename}")
-    return warp_matrix
+    return warp_matrix, H
         
 def overlay_imgs(rgb,thermal):
     rgb_gray = cv2.cvtColor((rgb * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
@@ -155,7 +158,7 @@ def prepare_pansharp(rgb,thermal,warp_matrix,ratio=4,verbose=False):
         print(f"[PS-MS-HR'] Image Shape: {PS_MS_HR_p.shape}")
 	
 	# Apply registration matrix to rgb
-    rgb_aligned = cv2.warpAffine(
+    rgb_aligned = cv2.warpPerspective(
         rgb,
         warp_matrix,
         (rgb.shape[1], rgb.shape[0]),
