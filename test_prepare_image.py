@@ -15,7 +15,7 @@ if __name__ == "__main__":
 	print("="*70)
 	print("\n")
 	
-	thermal_raw = cv2.imread("static/geo_cal_captures/thermal_20260402_211339.tiff",cv2.IMREAD_UNCHANGED).astype(np.float32) # captured radiometric flir leption image
+	thermal_raw = cv2.imread("static/captures/thermal_20260404_124409.tiff",cv2.IMREAD_UNCHANGED).astype(np.float32) # captured radiometric flir leption image
 	print(f"[RAW THERMAL IMAGE]")
 	print(f"    Min pixel value: {np.min(thermal_raw)}")
 	print(f"    Max pixel value: {np.max(thermal_raw)}")
@@ -27,7 +27,7 @@ if __name__ == "__main__":
 	dist = np.load("_resources/thermal_dist.npy")
 	
 	# Input Parameters
-	rgb = cv2.imread("static/geo_cal_captures/rgb_20260402_211339.jpg").astype(np.float32) / 255.0 # captured raspberry pi rgb image
+	rgb = cv2.imread("static/captures/rgb_20260404_124409.jpg").astype(np.float32) / 255.0 # captured raspberry pi rgb image
 	thermal = cv2.undistort(cv2.normalize(thermal_raw, None, 0.0, 1.0, cv2.NORM_MINMAX),K,dist)
 	H = np.load("_resources/H.npy")
 	ratio = 4 # how many times to boost the thermal resolution
