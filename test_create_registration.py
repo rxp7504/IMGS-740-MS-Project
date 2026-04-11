@@ -25,7 +25,7 @@ if __name__ == "__main__":
 	rgb = cv2.imread("static/geo_cal_captures/rgb_20260402_211339.jpg").astype(np.float32) / 255.0 # captured raspberry pi rgb image
 	thermal = cv2.undistort(cv2.normalize(thermal_raw, None, 0.0, 1.0, cv2.NORM_MINMAX),K,dist)
 	warp_matrix = np.load("_resources/warp_matrix.npy")
-	ratio = 4 # how many times to boost the thermal resolution
+	ratio = 20 # how many times to boost the thermal resolution
 	
 	print("[ORIGINAL RGB IMAGE]")     
 	print(f"    Image shape: {rgb.shape}")
@@ -73,7 +73,7 @@ if __name__ == "__main__":
 	print(f"[PS-MS-HR'] Image Shape: {PS_MS_HR_p.shape}")
 	
 	_, H = utils.create_registration_matrix(PS_MS_HR_p[:,:,0:3], rgb, "_resources/warp_matrix.npy")
-	np.save("_resources/H.npy",H)
+	np.save("_resources/H_20x.npy",H)
 	print("Homography transform saved.")
 	
 	# Apply homography matrix to rgb

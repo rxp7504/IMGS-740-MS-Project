@@ -30,7 +30,7 @@ if __name__ == "__main__":
 	rgb = cv2.imread("static/captures/rgb_20260404_124409.jpg").astype(np.float32) / 255.0 # captured raspberry pi rgb image
 	thermal = cv2.undistort(cv2.normalize(thermal_raw, None, 0.0, 1.0, cv2.NORM_MINMAX),K,dist)
 	H = np.load("_resources/H.npy")
-	ratio = 4 # how many times to boost the thermal resolution
+	ratio = 20 # how many times to boost the thermal resolution
 	
 	# Reduce the thermal size by 4 for comparing algorithm performance
 	cv2.imwrite("_imgs/thermal_truth.tiff",thermal)
