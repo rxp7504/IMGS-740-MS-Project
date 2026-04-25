@@ -14,8 +14,9 @@ def create_registration_matrix(img_fixed, img_moving, filename):
     Returns:
         warp_matrix: 2x3 float32 affine transform matrix
     """
+    """
     def select_points(img, window_name, n_points=6):
-        """
+        
         Manually select corresponding points on an image by clicking.
 
         Args:
@@ -24,7 +25,7 @@ def create_registration_matrix(img_fixed, img_moving, filename):
             n_points:     Suggested number of points to select
         Returns:
             numpy array of (x, y) float32 points
-        """
+        
         points = []
         display = cv2.cvtColor((img * 255).astype(np.uint8), cv2.COLOR_GRAY2BGR)
         clone = display.copy()
@@ -43,6 +44,57 @@ def create_registration_matrix(img_fixed, img_moving, filename):
                     for i, p in enumerate(points):
                         cv2.circle(display, p, 5, (0, 255, 0), -1)
                         cv2.putText(display, str(i + 1), (p[0] + 8, p[1] - 8),
+                                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                    cv2.imshow(window_name, display)
+
+        cv2.namedWindow(window_name)
+        cv2.setMouseCallback(window_name, click)
+        cv2.imshow(window_name, display)
+        print(f"    Click {n_points} points. Right click to undo. Press 'q' when done.")
+        while True:
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+        cv2.destroyWindow(window_name)
+        print(f"    {len(points)} points selected.")
+        return np.float32(points)
+        """
+            
+    def select_points(img, window_name, n_points=6, display_scale=0.25):
+        """
+        Manually select corresponding points on an image by clicking.
+        Displays a scaled-down version but returns full-resolution coordinates.
+        """
+        points = []
+        
+        # Scale down for display only
+        h, w = img.shape[:2]
+        display_w = int(w * display_scale)
+        display_h = int(h * display_scale)
+        display = cv2.resize((img * 255).astype(np.uint8), (display_w, display_h))
+        if display.ndim == 2:
+            display = cv2.cvtColor(display, cv2.COLOR_GRAY2BGR)
+        clone = display.copy()
+
+        def click(event, x, y, flags, param):
+            if event == cv2.EVENT_LBUTTONDOWN:
+                # Scale coordinates back to full resolution
+                full_x = int(x / display_scale)
+                full_y = int(y / display_scale)
+                points.append((full_x, full_y))
+                cv2.circle(display, (x, y), 5, (0, 255, 0), -1)
+                cv2.putText(display, str(len(points)), (x + 8, y - 8),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+                cv2.imshow(window_name, display)
+
+            elif event == cv2.EVENT_RBUTTONDOWN:
+                if points:
+                    points.pop()
+                    display[:] = clone.copy()
+                    for i, p in enumerate(points):
+                        # Convert back to display coords for redraw
+                        dx, dy = int(p[0] * display_scale), int(p[1] * display_scale)
+                        cv2.circle(display, (dx, dy), 5, (0, 255, 0), -1)
+                        cv2.putText(display, str(i + 1), (dx + 8, dy - 8),
                                     cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
                     cv2.imshow(window_name, display)
 
@@ -85,7 +137,10 @@ def create_registration_matrix(img_fixed, img_moving, filename):
     np.save(filename, warp_matrix)
     print(f"    Warp matrix saved to {filename}")
     return warp_matrix, H
-        
+    
+
+
+
 def overlay_imgs(rgb,thermal):
     rgb_gray = cv2.cvtColor((rgb * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
     thermal_gray = cv2.cvtColor((thermal     * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
