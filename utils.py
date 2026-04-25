@@ -138,9 +138,6 @@ def create_registration_matrix(img_fixed, img_moving, filename):
     print(f"    Warp matrix saved to {filename}")
     return warp_matrix, H
     
-
-
-
 def overlay_imgs(rgb,thermal):
     rgb_gray = cv2.cvtColor((rgb * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
     thermal_gray = cv2.cvtColor((thermal     * 255).astype(np.uint8), cv2.COLOR_BGR2GRAY).astype(np.float32) / 255.0
