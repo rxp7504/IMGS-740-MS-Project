@@ -124,13 +124,12 @@ def gradient_sharpen(thermal: np.ndarray, pan: np.ndarray,
 #  Radiometric Conversion
 # =============================================================================
 
-def normalized_to_celsius(img: np.ndarray,
-                           raw_min: float, raw_max: float) -> np.ndarray:
+def normalized_to_celsius(raw: np.ndarray) -> np.ndarray:
     """
     Convert normalized [0-1] thermal image back to Celsius.
     Lepton radiometry: raw value = Kelvin * 100
     """
-    raw = img * (raw_max - raw_min) + raw_min
+    #raw = img * (raw_max - raw_min) + raw_min
     return (raw / 100.0) - 273.15
 
 
@@ -156,7 +155,29 @@ def save_diverging(path: str, img: np.ndarray) -> None:
     out  = ((img / vmax + 1) / 2 * 255).astype(np.uint8)
     cv2.imwrite(path, cv2.applyColorMap(out, cv2.COLORMAP_COOL))
 
+def gradient_sharpen_thermal(thermal_raw,rgb,ratio,K,dist,H):
+	
+	# Store the min/max raw thermal image values
+	THERMAL_MIN_RAW = float(thermal_raw.min())
+	THERMAL_MAX_RAW = float(thermal_raw.max())	
+	
+	# Undistort and normalize the thermal image
+	thermal = undistort_thermal(thermal_raw,K,dist)
+		
+	# Register the RGB image to the thermal and make greyscale
+	pan = utils.prepare_pan(rgb, thermal, H, ratio, verbose=True)
+	
+	# Upscale the thermal image to match the pan
+	thermal_upscale = upscale_thermal(thermal,ratio)
 
+	# Run gradient sharpening
+	print("\nRunning gradient sharpening...")
+	thermal_sharpened, agreement, p = gradient_sharpen(thermal_upscale, pan, sigma_vis=1.0)
+	thermal_sharpened_raw = thermal_sharpened * (THERMAL_MAX_RAW - THERMAL_MIN_RAW) + THERMAL_MIN_RAW
+
+	print(f"\nScale correction: p[0]={p[0]:.4f}  p[1]={p[1]:.4f}")
+	print(f"Sharpened range:  {thermal_sharpened.min():.4f} to {thermal_sharpened.max():.4f}")
+	return thermal_sharpened, pan, thermal_sharpened_raw, thermal_upscale
 
 if __name__ == "__main__":
 	print("="*70)
@@ -189,39 +210,18 @@ if __name__ == "__main__":
 	H = np.load("_resources/H_20x.npy")	
 	
     # -------------------------------------------------------------------------
-    #  Image Pre-processing
+    #  Gradient sharpening
     # -------------------------------------------------------------------------
-	
-	# Store the min/max raw thermal image values
-	THERMAL_MIN_RAW = float(thermal_raw.min())
-	THERMAL_MAX_RAW = float(thermal_raw.max())	
-	
-	# Undistort and normalize the thermal image
-	thermal = undistort_thermal(thermal_raw,K,dist)
-		
-	# Register the RGB image to the thermal and make greyscale
-	pan = utils.prepare_pan(rgb, thermal, H, ratio, verbose=True)
-	
-	# Upscale the thermal image to match the pan
-	thermal_upscale = upscale_thermal(thermal,ratio)
 
-    # -------------------------------------------------------------------------
-    #  Run Sharpening
-    # -------------------------------------------------------------------------
-	print("\nRunning gradient sharpening...")
-	I_sharpened, agreement, p = gradient_sharpen(thermal_upscale, pan, sigma_vis=1.0)
-	thermal_sharpened_raw = I_sharpened * (THERMAL_MAX_RAW - THERMAL_MIN_RAW) + THERMAL_MIN_RAW
-
-	print(f"\nScale correction: p[0]={p[0]:.4f}  p[1]={p[1]:.4f}")
-	print(f"Sharpened range:  {I_sharpened.min():.4f} to {I_sharpened.max():.4f}")
+	# Run the whole thermal sharpening algorithm
+	thermal_sharpened, pan, thermal_sharpened_raw, thermal_upscale = gradient_sharpen_thermal(thermal_raw,rgb,ratio,K,dist,H)
 
     # -------------------------------------------------------------------------
     #  Radiometric Evaluation
     # -------------------------------------------------------------------------
-	thermal_celsius   = normalized_to_celsius(thermal_upscale,
-											   THERMAL_MIN_RAW, THERMAL_MAX_RAW)
-	sharpened_celsius = normalized_to_celsius(I_sharpened,
-											   THERMAL_MIN_RAW, THERMAL_MAX_RAW)
+
+	thermal_celsius   = normalized_to_celsius(thermal_raw)
+	sharpened_celsius = normalized_to_celsius(cv2.resize(thermal_sharpened_raw, (thermal_raw.shape[1], thermal_raw.shape[0])))
 	err_celsius = np.abs(thermal_celsius - sharpened_celsius)
 
 	print(f"\nRadiometric Error:")
@@ -230,7 +230,7 @@ if __name__ == "__main__":
 	print(f"  Mean error: {err_celsius.mean():.2f}°C")
 
 	# Interior error (exclude boundary artifacts)
-	border       = 50
+	border       = 10
 	interior_err = err_celsius[border:-border, border:-border]
 	print(f"\nInterior error (excluding {border}px border):")
 	print(f"  RMS: {np.sqrt(np.mean(interior_err**2)):.2f}°C")
@@ -242,7 +242,7 @@ if __name__ == "__main__":
 	print("\nSaving results...")
 	#cv2.imwrite("_imgs/thermal_truth.tiff",thermal) # Write out the undistorted thermal image
 	save_gray("_imgs/gs_thermal_original.png",  thermal_upscale)
-	save_gray("_imgs/gs_thermal_sharpened.png", I_sharpened)
+	save_gray("_imgs/gs_thermal_sharpened.png", thermal_sharpened)
 	save_gray("_imgs/gs_pan.png",               pan / pan.max())
 	#save_heatmap("_imgs/gs_agreement_map.png",  agreement)
 	#save_heatmap("_imgs/gs_error_celsius.png",  err_celsius)
