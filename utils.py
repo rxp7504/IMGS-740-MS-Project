@@ -223,3 +223,51 @@ def prepare_pansharp(rgb,thermal,warp_matrix,ratio=4,verbose=False):
         print(f"[PAN] Image Shape: {pan.shape}")
 
     return PS_MS_HR_p, pan
+
+
+def prepare_pan(rgb, thermal, warp_matrix, ratio=4, verbose=False):
+    """
+    Register RGB to thermal coordinate system and produce a grayscale PAN image.
+    Stripped-down version of prepare_pansharp — no PS-MS image produced.
+
+    Args:
+        rgb:         RGB image (H x W x 3), float32 [0-1]
+        thermal:     thermal image (H x W), float32 [0-1]
+        warp_matrix: homography matrix from create_registration_matrix()
+        ratio:       upscale ratio for thermal
+        verbose:     print shape info
+
+    Returns:
+        pan: grayscale registered RGB image (H*ratio x W*ratio), float32 [0-1]
+    """
+    thermal_h, thermal_w = thermal.shape[:2]
+    target_size = (thermal_w * ratio, thermal_h * ratio)  # (width, height)
+
+    # Resize RGB to match hi-res thermal dimensions
+    rgb = center_crop_to_aspect(rgb, thermal_w / thermal_h)
+    rgb = cv2.resize(rgb, target_size)
+
+    if verbose:
+        print(f"[PREPARE PAN]")
+        print(f"    RGB shape after resize: {rgb.shape}")
+        print(f"    Target size: {target_size}")
+
+    # Apply registration warp
+    rgb_aligned = cv2.warpPerspective(
+        rgb,
+        warp_matrix,
+        (rgb.shape[1], rgb.shape[0]),
+        flags=cv2.INTER_LINEAR
+    )
+
+    # Grayscale → PAN
+    pan = cv2.cvtColor(
+        (rgb_aligned * 255).astype(np.uint8),
+        cv2.COLOR_BGR2GRAY
+    ).astype(np.float32) / 255.0
+
+    if verbose:
+        print(f"    PAN shape: {pan.shape}")
+        print(f"    PAN range: {pan.min():.4f} to {pan.max():.4f}")
+
+    return pan
