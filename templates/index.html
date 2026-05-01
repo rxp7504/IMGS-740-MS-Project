@@ -7,59 +7,67 @@
     <style>
         body {
             font-family: sans-serif;
-            max-width: 600px;
+            max-width: 640px;
             margin: 0 auto;
             padding: 20px;
             background: #111;
             color: #eee;
         }
-
         h1 {
             text-align: center;
             font-size: 1.4rem;
             margin-bottom: 30px;
         }
-
-        form {
-            text-align: center;
+        .buttons {
+            display: flex;
+            gap: 10px;
             margin-bottom: 30px;
         }
-
         button {
-            background: #e05c00;
-            color: white;
+            flex: 1;
             border: none;
-            padding: 20px 60px;
-            font-size: 1.4rem;
+            padding: 20px;
+            font-size: 1.2rem;
             border-radius: 12px;
             cursor: pointer;
-            width: 100%;
+            font-weight: bold;
+        }
+        #btn-capture {
+            background: #e05c00;
+            color: white;
+        }
+        #btn-capture:active { background: #b34a00; }
+
+        #btn-sharpen {
+            background: #0066cc;
+            color: white;
+        }
+        #btn-sharpen:hover  { background: #0055aa; }
+        #btn-sharpen:active { background: #004488; }
+        #btn-sharpen:disabled {
+            background: #333;
+            color: #666;
+            cursor: not-allowed;
         }
 
-        button:active {
-            background: #b34a00;
-        }
-
-        .labels {
+        .image-grid {
             display: flex;
             gap: 10px;
-            margin-bottom: 6px;
         }
-
-        .labels span {
-            width: 50%;
-            text-align: center;
+        .image-grid .col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+        .image-grid .col span {
             font-size: 0.8rem;
             color: #888;
+            text-align: center;
         }
-
-        .capture-pair {
-            display: flex;
-            gap: 10px;
-        }
-
-        .capture-pair img {
-            width: 50%;
+        .image-grid .col img {
+            width: 100%;
             border-radius: 8px;
         }
 
@@ -68,28 +76,86 @@
             color: #555;
             margin-top: 40px;
         }
+
+        #status-bar {
+            text-align: center;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+            font-size: 0.9rem;
+            display: none;
+        }
+        #status-bar.running {
+            display: block;
+            background: #1a3a5c;
+            color: #7bc8ff;
+        }
+        #status-bar.error {
+            display: block;
+            background: #5c1a1a;
+            color: #ff7b7b;
+        }
     </style>
 </head>
 <body>
+    <h1>Camera Controller</h1>
 
-    <h1>📷 Camera Controller</h1>
+    <div class="buttons">
+        <form action="/capture" method="POST" style="flex:1">
+            <button type="submit" id="btn-capture">Capture</button>
+        </form>
+        <form action="/sharpen" method="POST" style="flex:1" id="sharpen-form">
+            <button type="submit" id="btn-sharpen"
+                {% if not images.rgb %}disabled{% endif %}>
+                Sharpen
+            </button>
+        </form>
+    </div>
 
-    <form action="/capture" method="POST">
-        <button type="submit">Capture</button>
-    </form>
+    <div id="status-bar" class="
+        {% if sharpened.status == 'running' %}running
+        {% elif sharpened.status == 'error' %}error{% endif %}">
+        {% if sharpened.status == 'running' %}
+            ⏳ Sharpening in progress...
+        {% elif sharpened.status == 'error' %}
+            ❌ Error: {{ sharpened.error }}
+        {% endif %}
+    </div>
 
     {% if images.rgb %}
-        <div class="labels">
-            <span>RGB</span>
-            <span>Thermal</span>
-        </div>
-        <div class="capture-pair">
-            <img src="/static/captures/{{ images.rgb }}" alt="RGB">
-            <img src="/static/captures/{{ images.thermal }}" alt="Thermal">
-        </div>
+        {% if sharpened.result %}
+            <div class="image-grid">
+                <div class="col"><span>RGB</span><img src="/static/captures/{{ images.rgb }}" alt="RGB"></div>
+                <div class="col"><span>Thermal</span><img src="/static/captures/{{ images.thermal }}" alt="Thermal"></div>
+                <div class="col"><span>Sharpened</span><img src="/static/captures/{{ sharpened.result }}" alt="Sharpened"></div>
+            </div>
+        {% else %}
+            <div class="image-grid">
+                <div class="col"><span>RGB</span><img src="/static/captures/{{ images.rgb }}" alt="RGB"></div>
+                <div class="col"><span>Thermal</span><img src="/static/captures/{{ images.thermal }}" alt="Thermal"></div>
+            </div>
+        {% endif %}
     {% else %}
         <p class="no-captures">No captures yet. Press Capture to take a photo.</p>
     {% endif %}
 
+    <script>
+        // If sharpening is running, poll until done then reload
+        {% if sharpened.status == 'running' %}
+        (function poll() {
+            setTimeout(function() {
+                fetch('/sharpen_status')
+                    .then(r => r.json())
+                    .then(data => {
+                        if (data.status === 'running') {
+                            poll();  // keep polling
+                        } else {
+                            window.location.reload();  // done or error — reload page
+                        }
+                    });
+            }, 2000);  // poll every 2 seconds
+        })();
+        {% endif %}
+    </script>
 </body>
 </html>

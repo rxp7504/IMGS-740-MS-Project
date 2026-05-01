@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Camera Controller</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #111;
+            color: #eee;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.4rem;
+            margin-bottom: 30px;
+        }
+
+        form {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: #e05c00;
+            color: white;
+            border: none;
+            padding: 20px 60px;
+            font-size: 1.4rem;
+            border-radius: 12px;
+            cursor: pointer;
+            width: 100%;
+        }
+
+        button:active {
+            background: #b34a00;
+        }
+
+        .labels {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 6px;
+        }
+
+        .labels span {
+            width: 50%;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #888;
+        }
+
+        .capture-pair {
+            display: flex;
+            gap: 10px;
+        }
+
+        .capture-pair img {
+            width: 50%;
+            border-radius: 8px;
+        }
+
+        .no-captures {
+            text-align: center;
+            color: #555;
+            margin-top: 40px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>📷 Camera Controller</h1>
+
+    <form action="/capture" method="POST">
+        <button type="submit">Capture</button>
+    </form>
+
+    {% if images.rgb %}
+        <div class="labels">
+            <span>RGB</span>
+            <span>Thermal</span>
+        </div>
+        <div class="capture-pair">
+            <img src="/static/captures/{{ images.rgb }}" alt="RGB">
+            <img src="/static/captures/{{ images.thermal }}" alt="Thermal">
+        </div>
+    {% else %}
+        <p class="no-captures">No captures yet. Press Capture to take a photo.</p>
+    {% endif %}
+
+</body>
+</html>
